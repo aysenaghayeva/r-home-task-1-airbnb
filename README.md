@@ -12,7 +12,7 @@
 Airbnb listings datasının R ilə tam EDA analizi.
 Data import, təmizlənməsi və ilkin statistik araşdırma.
 
-🔗 **[▶ Canlı Hesabatı Bax](https://aysenaghayeva.github.io/r-home-task-1-airbnb/airbnb-analysis.html)**
+🔗 **[▶ Canlı Hesabatı Bax](https://aysenaghayeva.github.io/r-home-task-1-airbnb/)**
 
 ---
 
