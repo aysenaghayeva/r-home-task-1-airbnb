@@ -1,0 +1,180 @@
+---
+title: "R Home task 1"
+author: "Ayşən A."
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    css: styles.css
+---
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"https://www.aztu.edu.az/sub_site/assets/dist/img/logo-footerr.png\" style=\"float: right;width: 300px;\"/>')
+   });
+</script>
+
+
+### İlkin hazırlıq
+
+```{r ilkinhaz,echo=T,error=F,warning=F,message=F,include=T}
+library(ggplot2)
+library(data.table)
+library(readr)
+library(readxl)
+library(xlsx)
+library(lubridate)
+library(dplyr)
+library(plotly)
+library(DT)
+library(ggthemes)
+library(hrbrthemes)
+```
+
+
+
+### Tapsiriq 1
+> Airbnb_listings cədvəlini import edin
+
+```{r t1,echo=T,error=F,warning=F,message=F,include=T}
+airb=fread("C:/Users/user/OneDrive/Masaüstü/R/Export&Import fayl/airbnb_listings.csv")
+
+```
+
+
+
+### Tapsiriq 2
+
+> Cari iş direktoriyasını Desktop/Tasks-a dəyişin
+
+```{r t2,echo=T,error=F,warning=F,message=F,include=T}
+setwd("C:/Users/user/OneDrive/Masaüstü/Tasks")
+ 
+```
+
+
+### Tapsiriq 3
+> Cədvəli .rds formatında export edin.
+
+```{r t3,echo=T,error=F,warning=F,message=F,include=T}
+saveRDS(airb,"C:/Users/user/OneDrive/Masaüstü/R/Export&Import fayl/airbnb_listings.rds")
+ 
+```
+
+
+### Tapsiriq 4
+
+> Cədvəli .rds formatından import edin
+
+```{r t4,echo=T,error=F,warning=F,message=F,include=T}
+rds=readRDS("C:/Users/user/OneDrive/Masaüstü/R/Export&Import fayl/airbnb_listings.rds")
+ 
+```
+
+
+
+
+### Tapsiriq 5
+> Cədvəlin xülasəsini əldə edin
+
+```{r t5,echo=T,error=F,warning=F,message=F,include=T}
+summary(airb)
+ 
+```
+
+
+
+### Tapsiriq 6
+> room_type-a görə qiymətlərin dağılımının qrafikini düzəldin. Şərh verin
+
+```{r t6,echo=T,error=F,warning=F,message=F,include=T}
+ggplot=ggplot(airb,aes(x=room_type,y=price,color=room_type))+geom_boxplot()+labs(title = "Otaq növünə görə qiymətlərin dağılımı",x="Otaq növü",y="Qiymət")+theme_ft_rc()
+
+
+ggplotly(ggplot)
+```
+
+
+Entire home/apt kateqoriyasında median qiymətlər digər otaq növlərindən daha yüksəkdir və çox sayda anormal dəyər qeydə alınıb. Bu, bazarda həqiqətən lüks mənzillərin geniş yayılması ilə bağlı ola bilər, ancaq bu qədər çox “outlier” qiymətlərin olması məlumatların düzgünlüyü barədə də müəyyən suallar yaradır. Hotel room kateqoriyasında qiymət aralığı daha sabit görünsə də, 500-dən yuxarı yüksələn qiymətlər qeyri-adi təsir bağışlayır və bu, ya bazarda spesifik nadir təkliflərin, ya da məlumat daxilində uyğunsuzluqların göstəricisi ola bilər. Private room üçün qiymətlərin əksəriyyəti aşağı səviyyədə cəmləşsə də, çoxlu sayda yüksək qiymətlərin müşahidə olunması təkliflərin reallığı barədə şübhə doğurur. Shared room ən ucuz kateqoriya olsa da, burada da yüzlərlə dollar səviyyəsində olan yüksək qiymətlər müəyyən uyğunsuzluq olduğunu sübut edir.
+
+
+### Tapsiriq 7
+> room_type-a görə elan sayı, minimal və maksimal qiyməti əks etdirən yeni cədvəl obyekti yaradın.
+
+```{r t7,echo=T,error=F,warning=F,message=F,include=T}
+tab=airb[,list(elan_sayi=n_distinct(id),min_price=min(price),max_price=max(price)),by=room_type]
+datatable(tab,
+          extensions = 'Buttons',
+           options = list(paging = TRUE,
+                          searching = TRUE,
+                          fixedColumns = TRUE,
+                          autoWidth = TRUE,
+                          ordering = TRUE,
+                          dom = 'Bftp',
+                          buttons = c('copy', 'csv', 'excel','print')
+                            ))
+```
+
+
+ 
+### Tapsiriq 8
+> Qeydiyyat tarixinin (host_since) ilinə görə elanların sayını vizuallaşdırın. Şərh verin
+
+```{r t8,echo=T,error=F,warning=F,message=F,include=T}
+airb$host_since= as.Date(airb$host_since, format = "%Y-%m-%d")
+newtab=airb[,list(elan_sayi=n_distinct(id)),by=list(qeyd_tarixi_il=year(host_since))][order(qeyd_tarixi_il)]
+gg=ggplot(newtab,aes(x=qeyd_tarixi_il,y=elan_sayi))+geom_line(color="red")+labs(title = "Qeydiyyat tarixinin ilinə görə elanların sayı")+theme_ft_rc()
+ggplotly(gg)
+
+
+
+```
+
+
+Məlumatların qrafik analizi göstərir ki, elanların sayı 2008–2012-ci illərdə sürətlə artaraq 2012-ci ildə pik həddə çatıb, daha sonra isə dalğavari azalma müşahidə olunub və 2019-dan sonra kəskin enişlə 2021-ci ildən minimum səviyyəyə düşüb. Bu dövrdə 2012–2014 arası qeyri-adi sıçrayış bazarda xüsusi  kampaniyadan, 2019-dan sonrakı sürətli azalma isə bazar daralması, rəqabət və ya platformadan çıxışdan qaynaqlana bilər, 2021 və sonrasındakı sıfırlanma isə məlumat boşluğu və ya qeydlərin aparılmaması ehtimalını göstərir.
+
+
+### Tapsiriq 9
+> Son 30 və 90 gün ərzində aktivlik (availability) dərəcəsinə görə elanları vizuallaşdırın. Xətti reqressiya xətti çəkin. Şərh verin
+
+```{r t9,echo=T,error=F,warning=F,message=F,include=T}
+aviab=ggplot(airb,aes(x=availability_30,y=availability_90))+geom_point(color="red")+geom_smooth(method = "lm",color="blue")+labs(title = "Son 30 və 90 gün ərzində aktivlik dərəcəsinə görə elanlar")+theme_ft_rc()
+ggplotly(aviab)
+
+```
+
+
+Göründüyü kimi, 30 günlük aktivlik dəyərləri artdıqca, 90 günlük aktivlik də paralel şəkildə yüksəlir, yəni müsbət korrelyasiya mövcuddur. Lakin aşağı aktivlik zonasında (0–10 aralığında) nöqtələr daha dağınıqdır və variasiya yüksəkdir, bu isə bəzi elanların qısa müddətdə aktiv olmasına baxmayaraq uzunmüddətli aktiv olmamasını göstərir. Orta və yüksək aktivlik zonalarında (0–10 arası) isə məlumatlar daha sıx toplanıb və sabit artım müşahidə olunur. Xətti reqressiya xətti ümumi trendi təsvir etsə də, bəzi nöqtələrin xətdən uzaq olması modelin tam uyğunlaşmadığını və outlier-lərin olduğunu göstərir.
+
+
+### Tapsiriq 10
+> property_type və room_type-a görə ortalama qiyməti əks etdirən cədvəl düzəldin. Həmin cədvələ əsasən bar chart düzəldin property_type-a görə facet edilmiş room_type~avg_price. Şərh verin
+
+```{r t10,echo=T,error=F,warning=F,message=F,include=T}
+avg = airb %>%
+  group_by(property_type, room_type) %>%
+  summarise(avg_price = round(mean(price), 2))
+
+datatable(avg,
+          extensions = 'Buttons',
+           options = list(paging = TRUE,
+                          searching = TRUE,
+                          fixedColumns = TRUE,
+                          autoWidth = TRUE,
+                          ordering = TRUE,
+                          dom = 'Bftp',
+                          buttons = c('copy', 'csv', 'excel','print')
+                            ))
+
+```
+
+```{r t10.1,echo=T,error=F,warning=F,message=F,include=T}
+
+gp=ggplot(avg,aes(x=property_type,y=avg_price))+geom_col(fill="blue",color="blue")+facet_wrap(.~room_type ,scales="free")+labs(title = "Otaq növünə görə ortalama qiymətlərin dağılımı")
+
+ggplotly(gp)
+```
+
+
+Entire home/apt kateqoriyasında qiymətlər geniş intervalda yayılıb və əsas sıxlıq 150–300 aralığında cəmləşib. Hotel room üçün qiymətlər daha stabildir və 100–300 aralığında dəyişir, müəyyən piklər müşahidə olunur. Private room kateqoriyasında qiymətlər çox dəyişkəndir və bəzi ekstremal yüksək qiymətlər (500-dən yuxarı) qeydə alınıb ki, bu da outlier ola bilər. Shared room üçün qiymətlər ümumilikdə aşağı olsa da, bəzi hallarda 300–400 aralığında yüksək dəyərlər ortaya çıxır. Ümumilikdə ən bahalı seqmentlər “Private room” və “Entire home/apt” görünür, sabitlik baxımından isə “Hotel room” daha balanslı nəticə göstərir.
